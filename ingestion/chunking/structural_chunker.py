@@ -110,15 +110,16 @@ class StructuralChunker(BaseChunker):
                     heading_stack.pop()
 
                 heading_stack.append((heading_level, heading_text))
-                # Seeded defect (issue #56): the tracked heading level is never read back,
-                # so heading-less documents get dropped. Leave as-is -- removing the
-                # assignment would hide the bug from students.
-                current_level = heading_level  # noqa: F841
+                current_level = heading_level
 
             else:
                 # Regular content line
                 if heading_stack or current_section_lines:  # Only collect if we have a heading
                     current_section_lines.append(line)
+
+        # Heading-less document: keep the whole text as a single section
+        if not heading_stack:
+            return [{"content": text.strip(), "path": [], "level": current_level}]
 
         # Save final section
         if current_section_lines and heading_stack:
